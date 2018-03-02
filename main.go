@@ -15,7 +15,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	reply, _ := NewTextReply(string(body), "").Reply()
-	fmt.Fprintln(w, reply)
+	fmt.Fprintf(w, reply)
 
 	fmt.Println("body:", string(body))
 }
@@ -26,7 +26,7 @@ func cmdHandler(w http.ResponseWriter, r *http.Request) {
 		cmd = "empty"
 	}
 	reply, _ := NewTextReply("", cmd).Reply()
-	fmt.Fprintln(w, reply)
+	fmt.Fprintf(w, reply)
 	fmt.Println("cmd:", cmd)
 
 }
