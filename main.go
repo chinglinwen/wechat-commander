@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/tidwall/gjson"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -14,10 +16,24 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "can't read body", http.StatusBadRequest)
 		return
 	}
-	reply, _ := NewTextReply(string(body), "").Reply()
-	fmt.Fprintf(w, reply)
+	fmt.Println("wechat:", string(body))
 
-	fmt.Println("body:", string(body))
+	reply, err := NewTextReply(string(body), "").Reply()
+	if err != nil {
+		fmt.Fprint(w, "internal error: ", err.Error())
+		return
+	}
+
+	replyType := gjson.Get(string(reply), "type").String()
+	replyData := gjson.Get(string(reply), "data").String()
+	replyErr := gjson.Get(string(reply), "error").String()
+	var n int
+	if len(replyData) < 10 {
+		n = len(replyData)
+	}
+	fmt.Printf("results type: %v, len: %v, data: %v, err: %v", replyType, len(replyData), replyData[0:n], replyErr)
+
+	fmt.Fprint(w, reply)
 }
 
 func cmdHandler(w http.ResponseWriter, r *http.Request) {
@@ -25,13 +41,24 @@ func cmdHandler(w http.ResponseWriter, r *http.Request) {
 	if cmd == "" {
 		cmd = "empty"
 	}
-	reply, _ := NewTextReply("", cmd).Reply()
-	fmt.Fprintf(w, reply)
 	fmt.Println("cmd:", cmd)
+	reply, err := NewTextReply("", cmd).Reply()
+	if err != nil {
+		fmt.Fprint(w, "internal error: ", err.Error())
+		return
+	}
 
+	replyType := gjson.Get(string(reply), "type").String()
+	replyData := gjson.Get(string(reply), "data").String()
+	replyErr := gjson.Get(string(reply), "error").String()
+	fmt.Println("replyfields:", replyType, replyData, replyErr)
+	fmt.Println("reply:", reply)
+
+	fmt.Fprint(w, string(reply))
 }
 
 func main() {
+	log.Println("starting...")
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/ui", cmdHandler)
 	log.Fatal(http.ListenAndServe(":4000", nil))

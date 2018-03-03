@@ -2,6 +2,8 @@ package main
 
 import (
 	"testing"
+
+	"github.com/tidwall/gjson"
 )
 
 var body = `
@@ -24,7 +26,8 @@ var body = `
 func TestTextReply(t *testing.T) {
 	reply, _ := NewTextReply("", "robot").Reply()
 	//spew.Dump(reply)
-	if reply != textRobot {
+	replyData := gjson.Get(string(reply), "data").String()
+	if replyData != textRobot {
 		t.Error("reply incorrect")
 	}
 }

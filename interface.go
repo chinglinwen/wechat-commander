@@ -1,9 +1,14 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/tidwall/gjson"
+
+	"github.com/chinglinwen/wxrobot-backend/girl"
 )
 
 //from wechat
@@ -37,6 +42,11 @@ type TextReply struct {
 	Body string
 }
 
+type Reply struct {
+	Type string
+	Data string
+}
+
 func NewTextReply(body, cmd string) *TextReply {
 	if cmd == "" {
 		cmd = gjson.Get(body, "Content").String()
@@ -45,16 +55,62 @@ func NewTextReply(body, cmd string) *TextReply {
 	return &TextReply{Body: body, Cmd: cmd}
 }
 
-func (t *TextReply) Reply() (text string, err error) {
+func (t *TextReply) Reply() (reply string, err error) {
+	var kind = "text"
+	var data string
+
 	if t.Cmd == "empty" {
-		text = "Your command is empty"
-		return
+		err = fmt.Errorf("Your command is empty")
+		return encode(kind, data, err)
 	}
 
-	if strings.Contains(t.Cmd, "robot") {
-		text = textRobot
-		return
+	if match(t.Cmd, "robot", "机器人") {
+		data = textRobot
+		return encode(kind, data, err)
 	}
+
+	if match(t.Cmd, "error", "bug") {
+		err = fmt.Errorf("robot is in trouble")
+		return encode(kind, data, err)
+	}
+
+	if match(t.Cmd, "girl", "美女") {
+		kind = "image"
+		data, err := girl.Pic()
+		if err != nil {
+			return encode(kind, "", err)
+		}
+		encoded := base64.StdEncoding.EncodeToString(data)
+		return encode(kind, encoded, err)
+	}
+
+	fmt.Printf("There's no data for this cmd.\n")
 	return
 	//not found, just skip, always return err=nil
+}
+
+func encode(kind, data string, err error) (string, error) {
+	var errtext string
+	if err != nil {
+		errtext = err.Error()
+	}
+	b, err := json.MarshalIndent(&struct {
+		Type  string `json:"type"`
+		Data  string `json:"data"`
+		Error string `json:"error"`
+	}{
+		Type:  kind,
+		Data:  data,
+		Error: errtext,
+	}, "", "  ")
+	return string(b), err
+}
+
+func match(cmd string, words ...string) bool {
+	for _, word := range words {
+		if strings.Contains(cmd, word) {
+			return true
+		}
+	}
+	return false
 }
