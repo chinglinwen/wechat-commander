@@ -16,6 +16,7 @@ var (
 )
 
 func main() {
+	flag.Parse()
 	log.Println("starting...")
 
 	// Set up a connection to the server.
