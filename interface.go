@@ -84,7 +84,7 @@ func (t *TextReply) Reply() (reply string, err error) {
 		return encode(kind, encoded, err)
 	}
 
-	fmt.Printf("There's no data for this cmd.\n")
+	//fmt.Printf("There's no data for this cmd.\n")
 	return
 	//not found, just skip, always return err=nil
 }

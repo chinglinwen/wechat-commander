@@ -12,6 +12,7 @@ import (
 var (
 	grpcAddress = flag.String("a", "localhost:50051", "default wxrobot grpc server address")
 	client      pb.ApiClient
+	port        = flag.String("p", ":4000", "this api listening port")
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/ui", cmdHandler)
 	http.HandleFunc("/text", textHandler)
-	log.Fatal(http.ListenAndServe(":4000", nil))
+	log.Fatal(http.ListenAndServe(*port, nil))
 }
 
 func conn() func() error {
