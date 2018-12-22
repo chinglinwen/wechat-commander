@@ -1,0 +1,16 @@
+
+let's design it first
+
+send msg to wechat(individual or group)
+receive msg from wechat
+
+//filter the msg (using regexp)
+
+// start with slash as command ( to process)
+
+/ping
+
+
+
+later send issue comment to wechat(group)
+  //need an api to do that

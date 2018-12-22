@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
+	"regexp"
 	"strings"
 
+	"github.com/chinglinwen/wxrobot-backend/commander"
 	"github.com/tidwall/gjson"
-
-	"github.com/chinglinwen/wxrobot-backend/girl"
 )
 
 //from wechat
@@ -37,9 +37,11 @@ type Handler interface {
 	Reply() (string, error)
 }
 
-type TextReply struct {
-	Cmd  string
-	Body string
+type Ask struct {
+	Cmd     string
+	Body    string
+	From    string
+	IsGroup bool
 }
 
 type Reply struct {
@@ -47,46 +49,114 @@ type Reply struct {
 	Data string
 }
 
-func NewTextReply(body, cmd string) *TextReply {
+func NewAsk(body, cmd, from string) *Ask {
+	isgroup := false
 	if cmd == "" {
 		cmd = gjson.Get(body, "Content").String()
+		isgroup = gjson.Get(body, "IsGroup").Bool()
 	}
 	cmd = strings.ToLower(cmd)
-	return &TextReply{Body: body, Cmd: cmd}
+	return &Ask{Body: body, Cmd: cmd, From: from, IsGroup: isgroup}
 }
 
-func (t *TextReply) Reply() (reply string, err error) {
-	var kind = "text"
-	var data string
+func formatCheck(cmd, from string) bool {
+	return regexp.MustCompile(`^/`).MatchString(cmd) && from == fromwechat
+}
 
-	if t.Cmd == "empty" {
-		err = fmt.Errorf("Your command is empty")
-		return encode(kind, data, err)
-	}
+type Helper interface {
+	Help() string
+}
 
-	if match(t.Cmd, "robot", "机器人") {
-		data = textRobot
-		return encode(kind, data, err)
-	}
-
-	if match(t.Cmd, "error", "bug") {
-		err = fmt.Errorf("robot is in trouble")
-		return encode(kind, data, err)
-	}
-
-	if match(t.Cmd, "girl", "美女") {
-		kind = "image"
-		data, err := girl.Pic()
-		if err != nil {
-			return encode(kind, "", err)
+func GenHelp() string {
+	data := "list of commands:\n"
+	for name, v := range commander.RegisteredCmds {
+		var help string
+		if h, ok := v.(Helper); ok {
+			help = h.Help()
 		}
-		encoded := base64.StdEncoding.EncodeToString(data)
-		return encode(kind, encoded, err)
+		data += fmt.Sprintf("/%v  %v\n", name, help)
+	}
+	return data
+}
+
+// list of commands
+// /ping
+// /k8s
+func Process(cmd string) (kind, data string, err error) {
+	kind = "text"
+
+	if cmd == "help" {
+		data = GenHelp()
+		return
 	}
 
-	//fmt.Printf("There's no data for this cmd.\n")
+	for name, v := range commander.RegisteredCmds {
+		if name != cmd {
+			continue
+		}
+		log.Printf("got Commander %v for cmd %v\n", name, cmd)
+		data, err = v.Command(cmd)
+		if err != nil {
+			log.Printf("exec cmd: %v err: %v\n", cmd, err)
+		}
+	}
+
+	/*
+		kind = "text"
+
+		if found(ping(cmd)) {
+			return
+		}
+
+		if cmd == "/ping" {
+			data = "pong"
+			return
+		}
+
+		if match(cmd, "robot", "机器人") {
+			data = textRobot
+			return
+		}
+
+		if match(cmd, "error", "bug") {
+			err = fmt.Errorf("robot is in trouble")
+			return
+		}
+
+		if match(cmd, "girl", "美女") {
+			kind = "image"
+			pic, e := girl.Pic()
+			if e != nil {
+				err = e
+				return
+			}
+			data = base64.StdEncoding.EncodeToString(pic)
+			return
+		}
+	*/
 	return
-	//not found, just skip, always return err=nil
+}
+
+func found(data string) bool {
+	return data != ""
+}
+
+func match(cmd string, words ...string) bool {
+	for _, word := range words {
+		if strings.Contains(cmd, word) {
+			return true
+		}
+	}
+	return false
+}
+
+func (t *Ask) Reply() (reply string, err error) {
+	if !formatCheck(t.Cmd, t.From) {
+		log.Println("ignore cmd", t.Cmd)
+		return
+	}
+	t.Cmd = strings.TrimPrefix(t.Cmd, "/")
+	return encode(Process(t.Cmd))
 }
 
 func encode(kind, data string, err error) (string, error) {
@@ -104,13 +174,4 @@ func encode(kind, data string, err error) (string, error) {
 		Error: errtext,
 	}, "", "  ")
 	return string(b), err
-}
-
-func match(cmd string, words ...string) bool {
-	for _, word := range words {
-		if strings.Contains(cmd, word) {
-			return true
-		}
-	}
-	return false
 }

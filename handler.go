@@ -9,6 +9,12 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+const (
+	// where does msg from
+	fromwechat = "wechat"
+	fromcmd    = "cmd"
+)
+
 // handler received command from wxrobot.
 func handler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
@@ -19,7 +25,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("wechat:", string(body))
 
-	reply, err := NewTextReply(string(body), "").Reply()
+	reply, err := NewAsk(string(body), "", fromwechat).Reply()
 	if err != nil {
 		fmt.Fprintln(w, "internal error: ", err.Error())
 		log.Println("error: ", err.Error())
@@ -46,7 +52,7 @@ func cmdHandler(w http.ResponseWriter, r *http.Request) {
 		cmd = "empty"
 	}
 	log.Println("cmd:", cmd)
-	reply, err := NewTextReply("", cmd).Reply()
+	reply, err := NewAsk("", cmd, fromcmd).Reply()
 	if err != nil {
 		fmt.Fprintln(w, "internal error: ", err.Error())
 		log.Println("error: ", err.Error())
@@ -63,6 +69,9 @@ func cmdHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // textHandler actively send text to wxrobot.
+// curl localhost:4000/text -F name="休比" -F text=hello
+//
+// this may need valid check ( specific group, and id limit )
 func textHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	text := r.FormValue("text")
