@@ -88,19 +88,23 @@ func GenHelp() string {
 func Process(cmd string) (kind, data string, err error) {
 	kind = "text"
 
-	if cmd == "help" {
+	c := strings.Fields(cmd)[0]
+
+	if c == "help" {
 		data = GenHelp()
 		return
 	}
 
 	for name, v := range commander.RegisteredCmds {
-		if name != cmd {
+		if c != name {
 			continue
 		}
 		log.Printf("got Commander %v for cmd %v\n", name, cmd)
 		data, err = v.Command(cmd)
 		if err != nil {
-			log.Printf("exec cmd: %v err: %v\n", cmd, err)
+			log.Printf("do cmd: %v err: %v\n", cmd, err)
+			data = err.Error()
+			return
 		}
 	}
 

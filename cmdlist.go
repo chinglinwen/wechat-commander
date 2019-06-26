@@ -4,4 +4,5 @@ package main
 import (
 	_ "github.com/chinglinwen/wxrobot-backend/commander/ping"
 	_ "github.com/chinglinwen/wxrobot-backend/commander/quote"
+	_ "github.com/chinglinwen/wxrobot-backend/commander/sh"
 )
