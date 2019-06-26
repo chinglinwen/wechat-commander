@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/chinglinwen/wxrobot-backend/commander"
-	"github.com/tidwall/gjson"
 )
 
 //from wechat
@@ -49,18 +48,22 @@ type Reply struct {
 	Data string
 }
 
-func NewAsk(body, cmd, from string) *Ask {
-	isgroup := false
-	if cmd == "" {
-		cmd = gjson.Get(body, "Content").String()
-		isgroup = gjson.Get(body, "IsGroup").Bool()
-	}
-	cmd = strings.ToLower(cmd)
-	return &Ask{Body: body, Cmd: cmd, From: from, IsGroup: isgroup}
+func NewAsk(from, cmd string) *Ask {
+	return &Ask{Cmd: cmd, From: from}
 }
 
+// func NewAsk(body, cmd, from string) *Ask {
+// 	isgroup := false
+// 	if cmd == "" {
+// 		cmd = gjson.Get(body, "Content").String()
+// 		isgroup = gjson.Get(body, "IsGroup").Bool()
+// 	}
+// 	cmd = strings.ToLower(cmd)
+// 	return &Ask{Body: body, Cmd: cmd, From: from, IsGroup: isgroup}
+// }
+
 func formatCheck(cmd, from string) bool {
-	return regexp.MustCompile(`^/`).MatchString(cmd) && from == fromwechat
+	return regexp.MustCompile(`^/`).MatchString(cmd) // && from == fromwechat
 }
 
 type Helper interface {

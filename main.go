@@ -24,8 +24,8 @@ func main() {
 	defer close()
 
 	http.HandleFunc("/", handler)
-	http.HandleFunc("/ui", cmdHandler)
-	http.HandleFunc("/text", textHandler)
+	// http.HandleFunc("/ui", cmdHandler)
+	// http.HandleFunc("/text", textHandler)
 	log.Fatal(http.ListenAndServe(*port, nil))
 }
 
