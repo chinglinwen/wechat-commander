@@ -7,12 +7,13 @@ import (
 	"github.com/chinglinwen/wxrobot-backend/commander"
 )
 
-type Sh struct {
+type Run struct {
 }
 
-func (*Sh) Command(cmd string) (out string, err error) {
-	c := exec.Command("bash", "-l", "-c", cmd)
-
+func (*Run) Command(cmd string) (out string, err error) {
+	s := "./run.sh " + cmd
+	c := exec.Command("bash", "-l", "-c", s)
+	c.Dir = "/home/wen/git/commanders"
 	output, err := c.CombinedOutput()
 	if err != nil {
 		err = fmt.Errorf("execute cmds: %v\noutput: %v", err, string(output))
@@ -23,10 +24,10 @@ func (*Sh) Command(cmd string) (out string, err error) {
 	return
 }
 
-func (*Sh) Help() string {
-	return "execute shell commands"
+func (*Run) Help() string {
+	return "run commanders from git"
 }
 
 func init() {
-	commander.Register("sh", &Sh{})
+	commander.Register("run", &Run{})
 }
