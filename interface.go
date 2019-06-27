@@ -89,58 +89,32 @@ func Process(cmd string) (kind, data string, err error) {
 	kind = "text"
 
 	c := strings.Fields(cmd)[0]
+	cmdargs := strings.TrimPrefix(cmd, c)
 
 	if c == "help" {
 		data = GenHelp()
 		return
 	}
 
+	found := false
 	for name, v := range commander.RegisteredCmds {
 		if c != name {
 			continue
 		}
-		log.Printf("got Commander %v for cmd %v\n", name, cmd)
-		data, err = v.Command(cmd)
+		found = true
+		log.Printf("got Commander %v for args %v\n", name, cmdargs)
+		data, err = v.Command(cmdargs)
 		if err != nil {
-			log.Printf("do cmd: %v err: %v\n", cmd, err)
+			log.Printf("do cmd: %v err: %v\n", cmdargs, err)
 			data = err.Error()
 			return
 		}
 	}
+	if !found {
+		data = fmt.Sprintf("unknown command: %v\n%v", c, GenHelp())
+		return
+	}
 
-	/*
-		kind = "text"
-
-		if found(ping(cmd)) {
-			return
-		}
-
-		if cmd == "/ping" {
-			data = "pong"
-			return
-		}
-
-		if match(cmd, "robot", "机器人") {
-			data = textRobot
-			return
-		}
-
-		if match(cmd, "error", "bug") {
-			err = fmt.Errorf("robot is in trouble")
-			return
-		}
-
-		if match(cmd, "girl", "美女") {
-			kind = "image"
-			pic, e := girl.Pic()
-			if e != nil {
-				err = e
-				return
-			}
-			data = base64.StdEncoding.EncodeToString(pic)
-			return
-		}
-	*/
 	return
 }
 

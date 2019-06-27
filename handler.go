@@ -14,12 +14,14 @@ const (
 
 // curl localhost:4000 -F from=me -F cmd=help
 func handler(w http.ResponseWriter, r *http.Request) {
+	ip := r.RemoteAddr
+	// fmt.Printf("r: %#v\n", r)
 	cmd := r.FormValue("cmd")
 	from := r.FormValue("from")
 	if cmd == "" {
 		cmd = "empty"
 	}
-	log.Println("cmd:", cmd)
+	log.Printf("from %v(ip: %v), cmd: %v", from, ip, cmd)
 
 	reply, err := NewAsk(from, cmd).Reply()
 	if err != nil {

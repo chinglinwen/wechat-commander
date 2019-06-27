@@ -3,7 +3,6 @@ package basic
 import (
 	"fmt"
 	"os/exec"
-	"strings"
 
 	"github.com/chinglinwen/wxrobot-backend/commander"
 )
@@ -12,8 +11,8 @@ type Sh struct {
 }
 
 func (*Sh) Command(cmd string) (out string, err error) {
-	s := strings.TrimPrefix(cmd, "sh")
-	c := exec.Command("bash", "-l", "-c", s)
+	// s := strings.TrimPrefix(cmd, "sh")
+	c := exec.Command("bash", "-l", "-c", cmd)
 
 	output, err := c.CombinedOutput()
 	if err != nil {
