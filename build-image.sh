@@ -10,5 +10,5 @@ go build
 image="wechat-commander:$suffix"
 echo -e "building image: $image\n"
 tag="harbor.haodai.net/ops/$image"
-docker build -t $tag .
+docker build --no-cache  -t $tag .
 docker push $tag
