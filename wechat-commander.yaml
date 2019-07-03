@@ -1,0 +1,82 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wechat-receiver
+  namespace: yunwei
+spec:
+  ports:
+  - name: web
+    port: 80
+    targetPort: 8002
+    protocol: TCP
+    nodePort: 37005
+  selector:
+    app: wechat-receiver
+  sessionAffinity: ClientIP
+  type: NodePort
+# we use extra nginx, since it need external ip
+#
+# Ingress
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: wechat-receiver
+  namespace: yunwei
+  # annotations:
+    #traefik.ingress.kubernetes.io/frontend-entry-points: http,https
+    # traefik.ingress.kubernetes.io/redirect-entry-point: https
+spec:
+  rules:
+  - host: wechat-receiver-test.newops.haodai.net
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: wechat-receiver
+          servicePort: web
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: wechat-receiver
+  namespace: yunwei
+  labels:
+    app: wechat-receiver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wechat-receiver
+  template:
+    metadata:
+      labels:
+        app: wechat-receiver
+    spec:
+      containers:
+        - name: wechat-receiver
+          image: harbor.haodai.net/ops/wechat-receiver:v1
+          imagePullPolicy: Always
+          # command: ["/bin/sh","-c","sleep 3600000"]
+          args:
+          - -w 
+          - http://wechat-notify.haodai.net
+          - -agentid
+          - "1000005"
+          - -secret
+          - 3Kds9ib-5JwY7-DrlxGIBq7XOjYDf846W3_Tda2sLe0
+          - -agentidDev
+          - "1000006"
+          - -secretDev
+          - zfLrCAxVHJxXhKk636krUtRwg0wxDO3EAUpihGw19AA
+          - -party
+          - "2"
+          - -partyDev
+          - "10"
+          ports:
+          - containerPort: 8002
+      nodeSelector:
+        #kubernetes.io/hostname: 172.31.90.208
+        func: monitor
+        # env: yunwei

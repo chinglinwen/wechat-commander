@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/chinglinwen/wxrobot-backend/commander"
+	"github.com/chinglinwen/wechat-commander/commander"
 )
 
 //from wechat

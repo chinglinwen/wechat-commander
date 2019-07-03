@@ -1,0 +1,21 @@
+
+syntax = "proto3";
+
+// The greeting service definition.
+service Api {
+  rpc Text (TextRequest) returns (TextReply) {}
+
+  //rpc SendCmd (TextCmd) returns (TextReply) {}
+}
+
+// The request message containing the user's name.
+message TextRequest {
+  string name = 1;
+  string text = 2;
+  //string group = 3;
+}
+
+// The response message containing the greetings
+message TextReply {
+  string data = 1;
+}

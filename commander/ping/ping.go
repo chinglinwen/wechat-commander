@@ -1,7 +1,7 @@
 package basic
 
 import (
-	"github.com/chinglinwen/wxrobot-backend/commander"
+	"github.com/chinglinwen/wechat-commander/commander"
 )
 
 type Ping struct {

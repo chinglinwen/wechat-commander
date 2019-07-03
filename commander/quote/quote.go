@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/chinglinwen/wxrobot-backend/commander"
-	"github.com/go-resty/resty"
+	"github.com/chinglinwen/wechat-commander/commander"
+	"gopkg.in/resty.v1"
 )
 
 type QuoteResult []struct {
