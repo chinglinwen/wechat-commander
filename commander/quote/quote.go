@@ -3,6 +3,7 @@ package quote
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/chinglinwen/wechat-commander/commander"
 	"gopkg.in/resty.v1"
@@ -40,15 +41,14 @@ type Quote struct {
 }
 
 func (b *Quote) Command(cmd string) (data string, err error) {
-	if cmd != "quote" {
-		return
-	}
 	//log.Printf("got cmd %v from quote", cmd)
-	if b.i == 0 || b.i > 10 {
+	if b.i == 0 || b.i > 10 || len(b.quotes) == 0 {
 		//get another 10 quotes
+		log.Printf("start requesting quote...")
 		b.quotes, err = GetQuote()
 		b.i = 1
 	}
+	log.Printf("got %v quotes, repsonse with %v", len(b.quotes), b.i)
 	data = fmt.Sprintf("%v\n  --%v\n", b.quotes[b.i].Quote, b.quotes[b.i].Author)
 	b.i += 1
 	return
